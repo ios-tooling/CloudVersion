@@ -1,14 +1,11 @@
 import Foundation
 
 public enum CloudVersionError: Error, CustomStringConvertible {
-	case notConfigured
 	case notSignedIn
 	case containerUnavailable(containerID: String, underlying: Error?)
 
 	public var description: String {
 		switch self {
-		case .notConfigured:
-			return "CloudVersion.shared.setup() has not been called."
 		case .notSignedIn:
 			return "Publishing requires the user to be signed in to iCloud."
 		case .containerUnavailable(let id, let underlying):

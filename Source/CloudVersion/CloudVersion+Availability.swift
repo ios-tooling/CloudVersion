@@ -1,15 +1,13 @@
 import CloudKit
 
-extension CloudVersion {
-	func verifyContainer() async throws {
-		guard let container else { throw CloudVersionError.notConfigured }
-		do {
-			_ = try await container.accountStatus()
-		} catch {
-			throw CloudVersionError.containerUnavailable(
-				containerID: container.containerIdentifier ?? "?",
-				underlying: error
-			)
+extension CloudVersionError {
+	static func wrap(_ error: Error, containerID: String) -> Error {
+		guard let ckError = error as? CKError else { return error }
+		switch ckError.code {
+		case .badContainer, .missingEntitlement, .incompatibleVersion:
+			return CloudVersionError.containerUnavailable(containerID: containerID, underlying: ckError)
+		default:
+			return error
 		}
 	}
 }

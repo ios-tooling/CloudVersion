@@ -6,10 +6,15 @@ extension CloudVersion {
 					  minimumSupportedVersion: String? = nil,
 					  releaseNotes: String? = nil,
 					  bundle: BundleInfo = .main) async throws -> CheckResult {
-		guard container != nil else { throw CloudVersionError.notConfigured }
-		let database = try publicDatabase
+		let database = publicDatabase
 
-		let published = try await fetcher.fetch(bundleID: bundle.bundleID, platform: .current, in: database)
+		let published: VersionRecord?
+		do {
+			published = try await fetcher.fetch(bundleID: bundle.bundleID, platform: .current, in: database)
+		} catch {
+			throw CloudVersionError.wrap(error, containerID: containerID)
+		}
+
 		let decision = CheckDecision.decide(
 			local: Version(bundle.version),
 			published: published,

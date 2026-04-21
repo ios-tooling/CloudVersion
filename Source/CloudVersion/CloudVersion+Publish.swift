@@ -5,8 +5,12 @@ extension CloudVersion {
 				 minimumSupportedVersion: String?,
 				 releaseNotes: String?,
 				 to database: CKDatabase) async throws {
-		guard let container else { throw CloudVersionError.notConfigured }
-		let status = try await container.accountStatus()
+		let status: CKAccountStatus
+		do {
+			status = try await container.accountStatus()
+		} catch {
+			throw CloudVersionError.wrap(error, containerID: containerID)
+		}
 		guard status == .available else { throw CloudVersionError.notSignedIn }
 
 		let record = VersionRecord(
@@ -17,6 +21,10 @@ extension CloudVersion {
 			minimumSupportedVersion: minimumSupportedVersion,
 			releaseNotes: releaseNotes
 		)
-		try await fetcher.publish(record, to: database)
+		do {
+			try await fetcher.publish(record, to: database)
+		} catch {
+			throw CloudVersionError.wrap(error, containerID: containerID)
+		}
 	}
 }
